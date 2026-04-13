@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📈 Trading Signal Pro</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Segoe UI',sans-serif;background:#07090f;color:#fff;min-height:100vh}
+
+    .header{background:#0a0f1a;border-bottom:1px solid #1a2235;padding:18px 20px;text-align:center}
+    .header h1{font-size:26px;background:linear-gradient(90deg,#00e676,#00b0ff,#7c4dff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
+    .header p{color:#444;font-size:12px}
+
+    .container{max-width:1100px;margin:0 auto;padding:20px}
+
+    /* Token Grid */
+    .token-section{margin-bottom:20px}
+    .section-label{font-size:11px;color:#444;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+    .token-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-bottom:12px}
+    .token-btn{padding:10px 8px;border:1px solid #1a2235;border-radius:10px;background:#0d1120;color:#aaa;cursor:pointer;text-align:center;transition:all 0.2s;font-size:13px}
+    .token-btn:hover{border-color:#00b0ff;color:#00b0ff}
+    .token-btn.selected{border-color:#00e676;color:#00e676;background:rgba(0,230,118,0.08)}
+    .token-sym{font-size:14px;font-weight:bold;display:block}
+    .token-name-sm{font-size:10px;color:#555;margin-top:2px}
+
+    /* Custom input */
+    .custom-row{display:flex;gap:8px;margin-bottom:16px}
+    .custom-row input{flex:1;padding:10px 14px;background:#0d1120;border:1px solid #1a2235;border-radius:8px;color:#fff;font-size:13px;outline:none}
+    .custom-row input:focus{border-color:#00b0ff}
+
+    /* Timeframe */
+    .tf-group{display:flex;gap:8px;margin-bottom:16px}
+    .tf-btn{padding:7px 16px;border:1px solid #1a2235;border-radius:20px;background:#0d1120;color:#555;cursor:pointer;font-size:12px;transition:all 0.2s}
+    .tf-btn.active{border-color:#00b0ff;color:#00b0ff;background:rgba(0,176,255,0.08)}
+
+    /* Scan Button */
+    .btn-scan{width:100%;padding:16px;background:linear-gradient(90deg,#00e676,#00b0ff);border:none;border-radius:14px;color:#000;font-size:18px;font-weight:bold;cursor:pointer;transition:opacity 0.2s;margin-bottom:16px}
+    .btn-scan:hover{opacity:0.88}
+    .btn-scan:disabled{opacity:0.4;cursor:not-allowed}
+
+    /* Loading */
+    .loading{display:none;text-align:center;padding:30px}
+    .scan-anim{font-size:40px;animation:scanpulse 1s infinite}
+    @keyframes scanpulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.1)}}
+    .loading p{color:#555;font-size:13px;margin-top:12px}
+    .loading-steps{margin-top:16px}
+    .step-item{font-size:12px;color:#333;padding:4px 0;transition:color 0.3s}
+    .step-item.done{color:#00e676}
+    .step-item.active{color:#00b0ff}
+
+    /* Error */
+    .error-msg{display:none;background:rgba(255,60,60,0.08);border:1px solid #ff3c3c;border-radius:10px;padding:12px;color:#ff6b6b;font-size:13px;margin-bottom:12px}
+
+    /* Results */
+    .result-section{display:none}
+
+    /* Main Signal Card */
+    .signal-hero{text-align:center;padding:28px;border-radius:16px;border:2px solid #1a2235;margin-bottom:16px;background:#0d1120}
+    .signal-token{font-size:14px;color:#555;margin-bottom:8px}
+    .signal-price-big{font-size:36px;font-weight:bold;margin-bottom:4px}
+    .signal-change{font-size:14px;font-weight:bold;padding:4px 12px;border-radius:20px;display:inline-block;margin-bottom:20px}
+    .chg-up{background:rgba(0,230,118,0.15);color:#00e676}
+    .chg-dn{background:rgba(255,68,68,0.15);color:#ff6b6b}
+    .signal-badge{font-size:22px;font-weight:bold;padding:12px 32px;border-radius:12px;display:inline-block;margin-bottom:12px}
+    .s4{background:rgba(0,230,118,0.2);color:#00e676;border:2px solid #00e676}
+    .s3{background:rgba(0,230,118,0.1);color:#69f0ae;border:1px solid #69f0ae}
+    .s2{background:rgba(255,214,0,0.1);color:#ffd600;border:1px solid #ffd600}
+    .s1{background:rgba(255,152,0,0.1);color:#ff9800;border:1px solid #ff9800}
+    .s0{background:rgba(255,68,68,0.2);color:#ff4444;border:2px solid #ff4444}
+    .signal-conf{font-size:13px;color:#555}
+
+    /* 4 Stats */
+    .stats-4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+    .stat4{background:#0d1120;border:1px solid #1a2235;border-radius:12px;padding:14px;text-align:center}
+    .stat4-icon{font-size:24px;margin-bottom:6px}
+    .stat4-label{font-size:10px;color:#444;margin-bottom:3px}
+    .stat4-value{font-size:15px;font-weight:bold}
+
+    /* Indicators */
+    .card{background:#0d1120;border:1px solid #1a2235;border-radius:14px;padding:18px;margin-bottom:12px}
+    .card h2{font-size:13px;color:#00b0ff;margin-bottom:14px}
+
+    .ind-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .ind-item{background:#07090f;border:1px solid #1a2235;border-radius:10px;padding:12px}
+    .ind-name{font-size:10px;color:#444;margin-bottom:4px}
+    .ind-value{font-size:18px;font-weight:bold;margin-bottom:4px}
+    .ind-status{font-size:10px;padding:2px 8px;border-radius:10px;display:inline-block}
+    .ind-up{background:rgba(0,230,118,0.1);color:#00e676}
+    .ind-dn{background:rgba(255,68,68,0.1);color:#ff6b6b}
+    .ind-neu{background:rgba(255,214,0,0.1);color:#ffd600}
+
+    /* Progress bar */
+    .prog-wrap{margin-bottom:10px}
+    .prog-label{display:flex;justify-content:space-between;font-size:11px;color:#555;margin-bottom:4px}
+    .prog-bar{height:8px;background:#1a2235;border-radius:4px;overflow:hidden}
+    .prog-fill{height:100%;border-radius:4px;transition:width 1s ease}
+
+    /* Signal Reasons */
+    .reason-item{padding:9px 0;border-bottom:1px solid #1a2235;font-size:12px;color:#aaa;display:flex;gap:8px;line-height:1.6}
+    .reason-item:last-child{border-bottom:none}
+
+    /* Multi token results */
+    .multi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:14px}
+    .mini-card{background:#0d1120;border:1px solid #1a2235;border-radius:12px;padding:14px;cursor:pointer;transition:border 0.2s}
+    .mini-card:hover{border-color:#00b0ff}
+    .mini-sym{font-size:15px;font-weight:bold;margin-bottom:4px}
+    .mini-price{font-size:13px;color:#aaa;margin-bottom:8px}
+    .mini-sig{font-size:12px;font-weight:bold;padding:3px 10px;border-radius:10px;display:inline-block}
+
+    .section-title-sm{font-size:11px;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+    .disclaimer{text-align:center;color:#222;font-size:11px;padding:20px 0 30px}
+
+    /* Scan mode tabs */
+    .mode-tabs{display:flex;gap:8px;margin-bottom:16px}
+    .mode-tab{flex:1;padding:10px;border:1px solid #1a2235;border-radius:10px;background:#0d1120;color:#555;cursor:pointer;font-size:13px;text-align:center;transition:all 0.2s}
+    .mode-tab.active{border-color:#00e676;color:#00e676;background:rgba(0,230,118,0.08)}
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📈 Trading Signal Pro</h1>
+  <p>Chọn token → Bấm Quét → Nhận tín hiệu ngay · Powered by OpenGradient AI + Binance</p>
+</div>
+
+<div class="container">
+
+  <!-- Mode Tabs -->
+  <div class="mode-tabs">
+    <div class="mode-tab active" onclick="setMode('single',this)">🎯 Quét 1 token</div>
+    <div class="mode-tab" onclick="setMode('multi',this)">🔍 Quét nhiều token</div>
+  </div>
+
+  <!-- Token Selection -->
+  <div class="token-section">
+    <div class="section-label">Chọn nhanh</div>
+    <div class="token-grid" id="tokenGrid">
+      <div class="token-btn" onclick="selectToken(this,'BTCUSDT','BTC')"><span class="token-sym">BTC</span><span class="token-name-sm">Bitcoin</span></div>
+      <div class="token-btn" onclick="selectToken(this,'ETHUSDT','ETH')"><span class="token-sym">ETH</span><span class="token-name-sm">Ethereum</span></div>
+      <div class="token-btn" onclick="selectToken(this,'SOLUSDT','SOL')"><span class="token-sym">SOL</span><span class="token-name-sm">Solana</span></div>
+      <div class="token-btn" onclick="selectToken(this,'BNBUSDT','BNB')"><span class="token-sym">BNB</span><span class="token-name-sm">BNB</span></div>
+      <div class="token-btn" onclick="selectToken(this,'XRPUSDT','XRP')"><span class="token-sym">XRP</span><span class="token-name-sm">Ripple</span></div>
+      <div class="token-btn" onclick="selectToken(this,'ADAUSDT','ADA')"><span class="token-sym">ADA</span><span class="token-name-sm">Cardano</span></div>
+      <div class="token-btn" onclick="selectToken(this,'DOGEUSDT','DOGE')"><span class="token-sym">DOGE</span><span class="token-name-sm">Dogecoin</span></div>
+      <div class="token-btn" onclick="selectToken(this,'AVAXUSDT','AVAX')"><span class="token-sym">AVAX</span><span class="token-name-sm">Avalanche</span></div>
+      <div class="token-btn" onclick="selectToken(this,'DOTUSDT','DOT')"><span class="token-sym">DOT</span><span class="token-name-sm">Polkadot</span></div>
+      <div class="token-btn" onclick="selectToken(this,'LINKUSDT','LINK')"><span class="token-sym">LINK</span><span class="token-name-sm">Chainlink</span></div>
+      <div class="token-btn" onclick="selectToken(this,'SUIUSDT','SUI')"><span class="token-sym">SUI</span><span class="token-name-sm">Sui</span></div>
+      <div class="token-btn" onclick="selectToken(this,'APTUSDT','APT')"><span class="token-sym">APT</span><span class="token-name-sm">Aptos</span></div>
+      <div class="token-btn" onclick="selectToken(this,'ARBUSDT','ARB')"><span class="token-sym">ARB</span><span class="token-name-sm">Arbitrum</span></div>
+      <div class="token-btn" onclick="selectToken(this,'OPUSDT','OP')"><span class="token-sym">OP</span><span class="token-name-sm">Optimism</span></div>
+      <div class="token-btn" onclick="selectToken(this,'NEARUSDT','NEAR')"><span class="token-sym">NEAR</span><span class="token-name-sm">Near</span></div>
+      <div class="token-btn" onclick="selectToken(this,'TONUSDT','TON')"><span class="token-sym">TON</span><span class="token-name-sm">Toncoin</span></div>
+      <div class="token-btn" onclick="selectToken(this,'MATICUSDT','MATIC')"><span class="token-sym">MATIC</span><span class="token-name-sm">Polygon</span></div>
+      <div class="token-btn" onclick="selectToken(this,'LTCUSDT','LTC')"><span class="token-sym">LTC</span><span class="token-name-sm">Litecoin</span></div>
+      <div class="token-btn" onclick="selectToken(this,'UNIUSDT','UNI')"><span class="token-sym">UNI</span><span class="token-name-sm">Uniswap</span></div>
+      <div class="token-btn" onclick="selectToken(this,'ATOMUSDT','ATOM')"><span class="token-sym">ATOM</span><span class="token-name-sm">Cosmos</span></div>
+    </div>
+
+    <div class="custom-row">
+      <input type="text" id="customToken" placeholder="Hoặc nhập symbol khác (vd: PEPE, WIF, JUP...)" oninput="this.value=this.value.toUpperCase()">
+    </div>
+
+    <!-- Timeframe -->
+    <div class="section-label">Khung thời gian</div>
+    <div class="tf-group" id="tfGroup">
+      <div class="tf-btn" onclick="selectTF(this,'15m')">15m</div>
+      <div class="tf-btn active" onclick="selectTF(this,'1h')">1h</div>
+      <div class="tf-btn" onclick="selectTF(this,'4h')">4h</div>
+      <div class="tf-btn" onclick="selectTF(this,'1d')">1D</div>
+    </div>
+  </div>
+
+  <div class="error-msg" id="errorMsg"></div>
+
+  <button class="btn-scan" id="btnScan" onclick="startScan()">
+    🔍 Quét & Phân tích ngay
+  </button>
+
+  <!-- Loading -->
+  <div class="loading" id="loading">
+    <div class="scan-anim">📡</div>
+    <p>Đang quét dữ liệu...</p>
+    <div class="loading-steps">
+      <div class="step-item" id="step1">⏳ Lấy dữ liệu giá từ Binance...</div>
+      <div class="step-item" id="step2">⏳ Tính toán RSI, MACD, Bollinger Bands...</div>
+      <div class="step-item" id="step3">⏳ Phân tích EMA crossover & Volume...</div>
+      <div class="step-item" id="step4">⏳ Chạy model OpenGradient AI...</div>
+      <div class="step-item" id="step5">⏳ Tạo báo cáo tín hiệu...</div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="result-section" id="resultSection">
+
+    <!-- Multi results -->
+    <div id="multiResults" style="display:none">
+      <div class="section-title-sm" style="margin-bottom:10px">Kết quả quét nhiều token</div>
+      <div class="multi-grid" id="multiGrid"></div>
+    </div>
+
+    <!-- Single result -->
+    <div id="singleResult">
+      <!-- Hero Signal -->
+      <div class="signal-hero" id="signalHero">
+        <div class="signal-token" id="rTokenName">-</div>
+        <div class="signal-price-big" id="rPrice">-</div>
+        <div>
+          <span class="signal-change" id="rChange">-</span>
+          <span style="font-size:12px;color:#555;margin-left:8px" id="rTF">-</span>
+        </div>
+        <div style="margin:16px 0">
+          <div class="signal-badge" id="rSignalBadge">-</div>
+        </div>
+        <div class="signal-conf" id="rConf">-</div>
+      </div>
+
+      <!-- 4 Quick Stats -->
+      <div class="stats-4">
+        <div class="stat4">
+          <div class="stat4-icon">📈</div>
+          <div class="stat4-label">Xu hướng</div>
+          <div class="stat4-value" id="sTrend">-</div>
+        </div>
+        <div class="stat4">
+          <div class="stat4-icon">⚡</div>
+          <div class="stat4-label">Momentum</div>
+          <div class="stat4-value" id="sMomentum">-</div>
+        </div>
+        <div class="stat4">
+          <div class="stat4-icon">📊</div>
+          <div class="stat4-label">RSI (14)</div>
+          <div class="stat4-value" id="sRSI">-</div>
+        </div>
+        <div class="stat4">
+          <div class="stat4-icon">💹</div>
+          <div class="stat4-label">Volume Ratio</div>
+          <div class="stat4-value" id="sVolRatio">-</div>
+        </div>
+      </div>
+
+      <!-- Indicators -->
+      <div class="card">
+        <h2>📊 Chỉ số kỹ thuật</h2>
+        <div class="ind-grid" id="indGrid"></div>
+      </div>
+
+      <!-- Signal Strength -->
+      <div class="card">
+        <h2>💯 Sức mạnh tín hiệu</h2>
+        <div id="strengthBars"></div>
+      </div>
+
+      <!-- Reasons -->
+      <div class="card">
+        <h2>🧠 Lý do tín hiệu</h2>
+        <div id="reasonsList"></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="disclaimer">📈 Trading Signal Pro · OpenGradient AI + Binance API · Tín hiệu mang tính tham khảo · Không phải lời khuyên đầu tư</p>
+</div>
+
+<script>
+  const MODEL_CID = "tfQTZfOdAuNM5_NqlqQbWWqj9oU8YUq-wSYUWZj0tO0";
+  const BINANCE = "https://api.binance.com/api/v3";
+
+  let selectedSymbol = null;
+  let selectedTF = '1h';
+  let scanMode = 'single';
+  let multiSelected = [];
+
+  function setMode(mode, el) {
+    scanMode = mode;
+    document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    multiSelected = [];
+    document.querySelectorAll('.token-btn').forEach(b => b.classList.remove('selected'));
+    selectedSymbol = null;
+    if (mode === 'multi') {
+      document.getElementById('btnScan').textContent = '🔍 Quét tất cả đã chọn';
+    } else {
+      document.getElementById('btnScan').textContent = '🔍 Quét & Phân tích ngay';
+    }
+  }
+
+  function selectToken(el, symbol, sym) {
+    if (scanMode === 'single') {
+      document.querySelectorAll('.token-btn').forEach(b => b.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedSymbol = symbol;
+      document.getElementById('customToken').value = '';
+    } else {
+      el.classList.toggle('selected');
+      if (el.classList.contains('selected')) {
+        if (!multiSelected.includes(symbol)) multiSelected.push(symbol);
+      } else {
+        multiSelected = multiSelected.filter(s => s !== symbol);
+      }
+    }
+  }
+
+  function selectTF(el, tf) {
+    selectedTF = tf;
+    document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  async function startScan() {
+    document.getElementById('errorMsg').style.display = 'none';
+    document.getElementById('resultSection').style.display = 'none';
+
+    const custom = document.getElementById('customToken').value.trim();
+    if (scanMode === 'single') {
+      const sym = custom ? (custom.includes('USDT') ? custom : custom + 'USDT') : selectedSymbol;
+      if (!sym) { showError('⚠️ Vui lòng chọn hoặc nhập token!'); return; }
+      await scanSingle(sym);
+    } else {
+      const tokens = multiSelected.length > 0 ? multiSelected : ['BTCUSDT','ETHUSDT','SOLUSDT','BNBUSDT','XRPUSDT','DOGEUSDT'];
+      await scanMulti(tokens);
+    }
+  }
+
+  async function scanSingle(symbol) {
+    showLoading(true);
+    try {
+      await setStep(1, true);
+      const [klines, ticker] = await Promise.all([
+        fetch(`${BINANCE}/klines?symbol=${symbol}&interval=${selectedTF}&limit=100`).then(r=>r.json()),
+        fetch(`${BINANCE}/ticker/24hr?symbol=${symbol}`).then(r=>r.json())
+      ]);
+      if (klines.error || ticker.code) throw new Error('Token không tồn tại');
+
+      await setStep(2, true);
+      const closes  = klines.map(k => parseFloat(k[4]));
+      const highs   = klines.map(k => parseFloat(k[2]));
+      const lows    = klines.map(k => parseFloat(k[3]));
+      const volumes = klines.map(k => parseFloat(k[5]));
+      const rsi     = calcRSI(closes, 14);
+      const { macdLine, signalLine, histogram } = calcMACD(closes);
+      const { upper, lower, mid } = calcBB(closes, 20);
+      const ema9  = calcEMA(closes, 9);
+      const ema21 = calcEMA(closes, 21);
+
+      await setStep(3, true);
+      const lastClose   = closes[closes.length - 1];
+      const lastRSI     = rsi[rsi.length - 1];
+      const lastMACD    = macdLine[macdLine.length - 1];
+      const lastSignal  = signalLine[signalLine.length - 1];
+      const lastHist    = histogram[histogram.length - 1];
+      const lastUpper   = upper[upper.length - 1];
+      const lastLower   = lower[lower.length - 1];
+      const lastMid     = mid[mid.length - 1];
+      const bbPos       = (lastClose - lastLower) / (lastUpper - lastLower + 0.0001);
+      const volAvg20    = volumes.slice(-20).reduce((a,b)=>a+b,0) / 20;
+      const volRatio    = volumes[volumes.length-1] / volAvg20;
+      const emaVal9     = ema9[ema9.length - 1];
+      const emaVal21    = ema21[ema21.length - 1];
+      const emaCross    = emaVal9 > emaVal21 ? 1 : emaVal9 < emaVal21 ? -1 : 0;
+      const priceChg1h  = parseFloat(ticker.priceChangePercent);
+      const priceChg24h = parseFloat(ticker.priceChangePercent);
+      const priceChg7d  = closes.length > 42 ? (lastClose/closes[closes.length-42]-1)*100 : priceChg24h;
+      const supportDist = ((lastClose - lastLower) / lastClose) * 100;
+
+      await setStep(4, true);
+      const input = [[
+        lastRSI, lastSignal, lastHist,
+        Math.max(0, Math.min(1, bbPos)),
+        Math.max(0.1, volRatio),
+        priceChg1h, priceChg24h, priceChg7d,
+        emaCross, Math.max(0, supportDist)
+      ]];
+
+      let sigIdx=2, confIdx=1, trendIdx=1, momIdx=1;
+      try {
+        const res = await fetch("https://api.opengradient.ai/api/v1/model/run", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ model_cid: MODEL_CID, inputs: { float_input: input } })
+        });
+        const data = await res.json();
+        const labels = data?.output_label ?? [];
+        sigIdx   = parseInt(labels[0] ?? calcSignalOff(lastRSI, lastHist, bbPos, emaCross));
+        confIdx  = parseInt(labels[1] ?? 1);
+        trendIdx = parseInt(labels[2] ?? 1);
+        momIdx   = parseInt(labels[3] ?? 1);
+      } catch {
+        sigIdx   = calcSignalOff(lastRSI, lastHist, bbPos, emaCross);
+        confIdx  = Math.abs(lastRSI-50) > 20 ? 2 : 1;
+        trendIdx = priceChg7d > 5 ? 2 : priceChg7d < -5 ? 0 : 1;
+        momIdx   = volRatio > 2 ? 2 : volRatio > 1.2 ? 1 : 0;
+      }
+
+      await setStep(5, true);
+      await new Promise(r => setTimeout(r, 300));
+
+      showSingleResult({
+        symbol: symbol.replace('USDT',''),
+        price: lastClose,
+        priceChg24h,
+        sigIdx, confIdx, trendIdx, momIdx,
+        rsi: lastRSI, macd: lastMACD, signal: lastSignal,
+        histogram: lastHist, bbPos, volRatio,
+        ema9: emaVal9, ema21: emaVal21, emaCross,
+        upper: lastUpper, lower: lastLower
+      });
+    } catch(e) {
+      showError(`❌ ${e.message || 'Không thể kết nối Binance. Kiểm tra tên token!'}`);
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  async function scanMulti(symbols) {
+    showLoading(true);
+    setStep(1, true);
+    const results = [];
+    for (const sym of symbols) {
+      try {
+        const [klines, ticker] = await Promise.all([
+          fetch(`${BINANCE}/klines?symbol=${sym}&interval=${selectedTF}&limit=100`).then(r=>r.json()),
+          fetch(`${BINANCE}/ticker/24hr?symbol=${sym}`).then(r=>r.json())
+        ]);
+        const closes  = klines.map(k => parseFloat(k[4]));
+        const volumes = klines.map(k => parseFloat(k[5]));
+        const rsi     = calcRSI(closes, 14);
+        const { histogram } = calcMACD(closes);
+        const { upper, lower } = calcBB(closes, 20);
+        const ema9  = calcEMA(closes, 9);
+        const ema21 = calcEMA(closes, 21);
+        const lastClose  = closes[closes.length-1];
+        const lastRSI    = rsi[rsi.length-1];
+        const lastHist   = histogram[histogram.length-1];
+        const lastUpper  = upper[upper.length-1];
+        const lastLower  = lower[lower.length-1];
+        const bbPos      = (lastClose-lastLower)/(lastUpper-lastLower+0.0001);
+        const emaCross   = ema9[ema9.length-1] > ema21[ema21.length-1] ? 1 : -1;
+        const sigIdx     = calcSignalOff(lastRSI, lastHist, bbPos, emaCross);
+        const priceChg   = parseFloat(ticker.priceChangePercent);
+        results.push({ sym: sym.replace('USDT',''), price: lastClose, priceChg, sigIdx });
+      } catch {}
+    }
+    setStep(4, true);
+    await new Promise(r => setTimeout(r, 300));
+    showMultiResult(results);
+    showLoading(false);
+  }
+
+  function calcSignalOff(rsi, hist, bbPos, emaCross) {
+    let s = 0;
+    if (rsi < 25) s += 4; else if (rsi < 35) s += 2;
+    else if (rsi > 75) s -= 4; else if (rsi > 65) s -= 2;
+    if (hist > 0.5) s += 2; else if (hist > 0) s += 1;
+    else if (hist < -0.5) s -= 2; else if (hist < 0) s -= 1;
+    if (bbPos < 0.2) s += 2; else if (bbPos > 0.8) s -= 2;
+    s += emaCross * 2;
+    return s >= 7 ? 4 : s >= 3 ? 3 : s >= -2 ? 2 : s >= -6 ? 1 : 0;
+  }
+
+  function calcRSI(closes, period) {
+    const rsi = [];
+    for (let i = period; i < closes.length; i++) {
+      let gains = 0, losses = 0;
+      for (let j = i - period + 1; j <= i; j++) {
+        const diff = closes[j] - closes[j-1];
+        if (diff > 0) gains += diff; else losses += Math.abs(diff);
+      }
+      const avgGain = gains / period;
+      const avgLoss = losses / period;
+      const rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
+      rsi.push(100 - 100 / (1 + rs));
+    }
+    return rsi;
+  }
+
+  function calcEMA(closes, period) {
+    const k = 2 / (period + 1);
+    const ema = [closes[0]];
+    for (let i = 1; i < closes.length; i++) {
+      ema.push(closes[i] * k + ema[i-1] * (1-k));
+    }
+    return ema;
+  }
+
+  function calcMACD(closes) {
+    const ema12 = calcEMA(closes, 12);
+    const ema26 = calcEMA(closes, 26);
+    const macdLine = ema12.map((v,i) => v - ema26[i]);
+    const signalLine = calcEMA(macdLine, 9);
+    const histogram = macdLine.map((v,i) => v - signalLine[i]);
+    return { macdLine, signalLine, histogram };
+  }
+
+  function calcBB(closes, period) {
+    const upper = [], lower = [], mid = [];
+    for (let i = period - 1; i < closes.length; i++) {
+      const slice = closes.slice(i - period + 1, i + 1);
+      const mean = slice.reduce((a,b) => a+b, 0) / period;
+      const std  = Math.sqrt(slice.reduce((a,b) => a + (b-mean)**2, 0) / period);
+      mid.push(mean);
+      upper.push(mean + 2 * std);
+      lower.push(mean - 2 * std);
+    }
+    return { upper, lower, mid };
+  }
+
+  function showSingleResult(d) {
+    const signals = [
+      { text:'🔴 STRONG SELL', cls:'s0', conf:['Yếu','Vừa','Cao'][d.confIdx] },
+      { text:'🟧 SELL',        cls:'s1', conf:['Yếu','Vừa','Cao'][d.confIdx] },
+      { text:'🟡 HOLD',        cls:'s2', conf:['Yếu','Vừa','Cao'][d.confIdx] },
+      { text:'🟩 BUY',         cls:'s3', conf:['Yếu','Vừa','Cao'][d.confIdx] },
+      { text:'🟢 STRONG BUY',  cls:'s4', conf:['Yếu','Vừa','Cao'][d.confIdx] },
+    ];
+    const trends   = ['📉 Downtrend','↔️ Sideways','📈 Uptrend'];
+    const moms     = ['💤 Yếu','⚡ Vừa','🔥 Mạnh'];
+    const s = signals[d.sigIdx] || signals[2];
+
+    document.getElementById('rTokenName').textContent = `${d.symbol}/USDT · ${selectedTF}`;
+    const pFmt = d.price >= 1 ? d.price.toLocaleString('en',{maximumFractionDigits:2}) : d.price.toFixed(6);
+    document.getElementById('rPrice').textContent = `$${pFmt}`;
+    document.getElementById('rChange').textContent = `${d.priceChg24h > 0 ? '+' : ''}${d.priceChg24h.toFixed(2)}%`;
+    document.getElementById('rChange').className = `signal-change ${d.priceChg24h >= 0 ? 'chg-up' : 'chg-dn'}`;
+    document.getElementById('rTF').textContent = selectedTF;
+    document.getElementById('rSignalBadge').textContent = s.text;
+    document.getElementById('rSignalBadge').className = `signal-badge ${s.cls}`;
+    document.getElementById('rConf').textContent = `Độ tin cậy: ${s.conf} · Phân tích bởi OpenGradient AI`;
+    document.getElementById('signalHero').style.borderColor = d.sigIdx >= 3 ? '#00e676' : d.sigIdx <= 1 ? '#ff4444' : '#ffd600';
+
+    document.getElementById('sTrend').textContent = trends[d.trendIdx];
+    document.getElementById('sMomentum').textContent = moms[d.momIdx];
+    document.getElementById('sRSI').textContent = d.rsi.toFixed(1);
+    document.getElementById('sRSI').style.color = d.rsi < 30 ? '#00e676' : d.rsi > 70 ? '#ff4444' : '#ffd600';
+    document.getElementById('sVolRatio').textContent = `${d.volRatio.toFixed(2)}x`;
+    document.getElementById('sVolRatio').style.color = d.volRatio > 2 ? '#00e676' : '#aaa';
+
+    // Indicators
+    const inds = [
+      { name:'RSI (14)', val: d.rsi.toFixed(1), status: d.rsi < 30 ? 'Oversold' : d.rsi > 70 ? 'Overbought' : 'Neutral', cls: d.rsi < 30 ? 'ind-up' : d.rsi > 70 ? 'ind-dn' : 'ind-neu' },
+      { name:'MACD Histogram', val: d.histogram.toFixed(4), status: d.histogram > 0 ? 'Bullish' : 'Bearish', cls: d.histogram > 0 ? 'ind-up' : 'ind-dn' },
+      { name:'Bollinger %B', val: (d.bbPos * 100).toFixed(1) + '%', status: d.bbPos < 0.2 ? 'Oversold' : d.bbPos > 0.8 ? 'Overbought' : 'Neutral', cls: d.bbPos < 0.2 ? 'ind-up' : d.bbPos > 0.8 ? 'ind-dn' : 'ind-neu' },
+      { name:'EMA Cross', val: d.emaCross === 1 ? 'Golden ✨' : d.emaCross === -1 ? 'Death ☠️' : 'Neutral', status: d.emaCross === 1 ? 'Bullish' : d.emaCross === -1 ? 'Bearish' : 'Neutral', cls: d.emaCross === 1 ? 'ind-up' : d.emaCross === -1 ? 'ind-dn' : 'ind-neu' },
+      { name:'Volume Ratio', val: d.volRatio.toFixed(2) + 'x', status: d.volRatio > 2 ? 'High' : d.volRatio > 1 ? 'Normal' : 'Low', cls: d.volRatio > 2 ? 'ind-up' : 'ind-neu' },
+      { name:'BB Width', val: `$${(d.upper - d.lower).toFixed(2)}`, status: 'Volatility range', cls: 'ind-neu' },
+    ];
+    document.getElementById('indGrid').innerHTML = inds.map(ind => `
+      <div class="ind-item">
+        <div class="ind-name">${ind.name}</div>
+        <div class="ind-value">${ind.val}</div>
+        <span class="ind-status ${ind.cls}">${ind.status}</span>
+      </div>`).join('');
+
+    // Strength bars
+    const strengths = [
+      { label:'RSI Signal', pct: d.sigIdx >= 3 ? 70 + d.sigIdx*5 : d.sigIdx <= 1 ? 20 - d.sigIdx*5 : 50, color: d.sigIdx >= 3 ? '#00e676' : d.sigIdx <= 1 ? '#ff4444' : '#ffd600' },
+      { label:'MACD Signal', pct: Math.min(100, Math.max(0, 50 + d.histogram * 20)), color: d.histogram > 0 ? '#00e676' : '#ff4444' },
+      { label:'Volume Confirmasi', pct: Math.min(100, d.volRatio * 30), color: '#00b0ff' },
+      { label:'Trend Strength', pct: d.trendIdx === 2 ? 80 : d.trendIdx === 0 ? 20 : 50, color: d.trendIdx === 2 ? '#00e676' : d.trendIdx === 0 ? '#ff4444' : '#ffd600' },
+    ];
+    document.getElementById('strengthBars').innerHTML = strengths.map(s => `
+      <div class="prog-wrap">
+        <div class="prog-label"><span>${s.label}</span><span>${Math.round(s.pct)}%</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="width:${s.pct}%;background:${s.color}"></div></div>
+      </div>`).join('');
+
+    // Reasons
+    const reasons = [];
+    if (d.rsi < 30) reasons.push({ icon:'📉', text:`RSI = ${d.rsi.toFixed(1)} — Vùng OVERSOLD. Token đang bị bán quá mức, khả năng hồi phục cao.` });
+    else if (d.rsi > 70) reasons.push({ icon:'📈', text:`RSI = ${d.rsi.toFixed(1)} — Vùng OVERBOUGHT. Token đang bị mua quá mức, khả năng điều chỉnh.` });
+    else reasons.push({ icon:'📊', text:`RSI = ${d.rsi.toFixed(1)} — Vùng trung tính. Chưa có tín hiệu rõ ràng từ RSI.` });
+
+    if (d.histogram > 0) reasons.push({ icon:'✅', text:`MACD Histogram dương (${d.histogram.toFixed(4)}) — Momentum đang tích cực, xu hướng tăng.` });
+    else reasons.push({ icon:'❌', text:`MACD Histogram âm (${d.histogram.toFixed(4)}) — Momentum đang tiêu cực, xu hướng giảm.` });
+
+    if (d.bbPos < 0.2) reasons.push({ icon:'💚', text:`Giá gần Lower Bollinger Band (${(d.bbPos*100).toFixed(1)}%) — Vùng hỗ trợ mạnh, cơ hội mua tốt.` });
+    else if (d.bbPos > 0.8) reasons.push({ icon:'🔴', text:`Giá gần Upper Bollinger Band (${(d.bbPos*100).toFixed(1)}%) — Vùng kháng cự, cẩn thận chốt lời.` });
+
+    if (d.emaCross === 1) reasons.push({ icon:'⭐', text:`EMA Golden Cross — EMA 9 cắt lên EMA 21, tín hiệu BULLISH mạnh.` });
+    else if (d.emaCross === -1) reasons.push({ icon:'💀', text:`EMA Death Cross — EMA 9 cắt xuống EMA 21, tín hiệu BEARISH mạnh.` });
+
+    if (d.volRatio > 2) reasons.push({ icon:'🔥', text:`Volume ${d.volRatio.toFixed(2)}x trung bình — Volume bùng nổ xác nhận tín hiệu hiện tại.` });
+    else if (d.volRatio < 0.7) reasons.push({ icon:'😴', text:`Volume thấp (${d.volRatio.toFixed(2)}x) — Tín hiệu thiếu xác nhận từ volume, cẩn thận.` });
+
+    document.getElementById('reasonsList').innerHTML = reasons.map(r =>
+      `<div class="reason-item"><span style="font-size:16px;min-width:22px">${r.icon}</span><span>${r.text}</span></div>`
+    ).join('');
+
+    document.getElementById('multiResults').style.display = 'none';
+    document.getElementById('singleResult').style.display = 'block';
+    document.getElementById('resultSection').style.display = 'block';
+    document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function showMultiResult(results) {
+    const sigColors = ['#ff4444','#ff9800','#ffd600','#69f0ae','#00e676'];
+    const sigTexts  = ['Strong Sell','Sell','Hold','Buy','Strong Buy'];
+    const sigCls    = ['s0','s1','s2','s3','s4'];
+
+    document.getElementById('multiGrid').innerHTML = results.map(r => `
+      <div class="mini-card" onclick="quickScanToken('${r.sym}USDT')">
+        <div class="mini-sym">${r.sym}/USDT</div>
+        <div class="mini-price">$${r.price >= 1 ? r.price.toLocaleString('en',{maximumFractionDigits:2}) : r.price.toFixed(6)}
+          <span style="font-size:11px;color:${r.priceChg>=0?'#00e676':'#ff6b6b'}">${r.priceChg>=0?'+':''}${r.priceChg.toFixed(2)}%</span>
+        </div>
+        <span class="mini-sig ${sigCls[r.sigIdx]}">${sigTexts[r.sigIdx]}</span>
+        <div style="font-size:10px;color:#333;margin-top:6px">Click để xem chi tiết</div>
+      </div>`).join('');
+
+    document.getElementById('multiResults').style.display = 'block';
+    document.getElementById('singleResult').style.display = 'none';
+    document.getElementById('resultSection').style.display = 'block';
+    document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  async function quickScanToken(sym) {
+    setMode('single', document.querySelectorAll('.mode-tab')[0]);
+    selectedSymbol = sym;
+    await scanSingle(sym);
+  }
+
+  function showLoading(show) {
+    document.getElementById('loading').style.display = show ? 'block' : 'none';
+    document.getElementById('btnScan').disabled = show;
+    if (show) {
+      ['step1','step2','step3','step4','step5'].forEach(id => {
+        document.getElementById(id).className = 'step-item';
+      });
+    }
+  }
+
+  async function setStep(n, done) {
+    const id = `step${n}`;
+    const labels = [
+      '', '✅ Lấy dữ liệu giá từ Binance...',
+      '✅ Tính toán RSI, MACD, Bollinger Bands...',
+      '✅ Phân tích EMA crossover & Volume...',
+      '✅ Chạy model OpenGradient AI...',
+      '✅ Tạo báo cáo tín hiệu...'
+    ];
+    if (done) {
+      document.getElementById(id).textContent = labels[n];
+      document.getElementById(id).className = 'step-item done';
+    }
+    await new Promise(r => setTimeout(r, 400));
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('errorMsg');
+    el.textContent = msg; el.style.display = 'block';
+  }
+
+  // Auto select BTC on load
+  window.addEventListener('load', () => {
+    const btcBtn = document.querySelector('.token-btn');
+    if (btcBtn) btcBtn.click();
+  });
+</script>
+</body>
+</html>
